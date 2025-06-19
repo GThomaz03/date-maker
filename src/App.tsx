@@ -1,6 +1,26 @@
 import { useRef, useEffect, useState } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { TouchBackend } from 'react-dnd-touch-backend';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { MultiBackend } from 'dnd-multi-backend';
+import { TouchTransition } from 'dnd-multi-backend'; // ✅ apenas os necessários
+
+const HTML5toTouch = {
+  backends: [
+    {
+      backend: HTML5Backend,
+      transition: undefined,
+    },
+    {
+      backend: TouchBackend,
+      options: { enableMouseEvents: true },
+      preview: true,
+      transition: TouchTransition,
+    },
+  ],
+};
+
+
 
 const CARD = 'CARD';
 
@@ -243,10 +263,26 @@ export default function App() {
     </div>
   );
 
+  const HTML5toTouch = {
+    backends: [
+      {
+        backend: HTML5Backend,
+        transition: undefined,
+      },
+      {
+        backend: TouchBackend,
+        options: { enableMouseEvents: true },
+        preview: true,
+        transition: TouchTransition,
+      },
+    ],
+  };
+
+
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider backend={MultiBackend} options={HTML5toTouch}>
       <div
-        className="min-h-screen min-w-screen bg-gradient-to-b from-sky-100 via-lime-50 to-white bg-cover p-4 sm:p-6 font-serif"
+        className="min-h-screen bg-gradient-to-b from-sky-100 via-lime-50 to-white bg-cover p-4 sm:p-6 font-serif"
         style={{
           backgroundImage:
             'url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80")',
@@ -256,35 +292,34 @@ export default function App() {
           <h1 className="text-3xl font-bold text-stone-700 mb-1 text-center">
             ✨ Monte o Dia Ideal com o Gabriel ✨
           </h1>
-          <p className='text-stone-700 text-center mb-6'>Lembando que ele é forte, bonito, inteligente, engraçado...</p>
+          <p className="text-stone-700 text-center mb-6">
+            Lembrando que ele é forte, bonito, inteligente, engraçado...
+          </p>
 
-          {/* Container principal em flex para desktop, column para mobile */}
-          <div className="flex flex-col lg:flex-row gap-8 min-w-[1060px]">
-            {/* Área dos slots - 50% largura no desktop */}
-            <div className="flex-3 max-w-xl mx-auto">
+          {/* ✅ Tornar layout flexível e responsivo */}
+          <div className="flex flex-col lg:flex-row gap-8 w-full">
+            {/* Área dos slots */}
+            <div className="flex-1 w-full max-w-3xl mx-auto">
               {steps.map(({ label, slotIndex, textBefore }) => (
                 <div key={label} className="mb-6">
-                    {/* Título da etapa */}
-                    <p className="text-lg font-bold text-stone-800 mb-1">{label}</p>
-
-                    {/* Linha com o texto e o slot lado a lado */}
-                    <div className="flex items-center gap-4">
-                      <p className="text-stone-700 text-base whitespace-nowrap">{textBefore}</p>
-                      <div className="flex-1 min-w[500px]">
-                        <DropSlot
-                          index={slotIndex}
-                          onDrop={handleDrop}
-                          current={slots[slotIndex]}
-                          label=""
-                        />
-                      </div>
+                  <p className="text-lg font-bold text-stone-800 mb-1">{label}</p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <p className="text-stone-700 text-base whitespace-nowrap">{textBefore}</p>
+                    <div className="flex-1 w-full">
+                      <DropSlot
+                        index={slotIndex}
+                        onDrop={handleDrop}
+                        current={slots[slotIndex]}
+                        label=""
+                      />
                     </div>
+                  </div>
                 </div>
               ))}
 
               <button
                 className="mt-4 bg-amber-300 hover:bg-amber-400 text-stone-800 font-semibold px-6 py-2 rounded-lg shadow block mx-auto"
-                onClick={() => setShowResult((v) => !v)} // toggle
+                onClick={() => setShowResult((v) => !v)}
               >
                 {showResult ? 'Esconder resultado' : 'Ver como ficou'}
               </button>
@@ -292,68 +327,62 @@ export default function App() {
               {showResult && renderResult()}
             </div>
 
+            {/* Área das opções */}
+            <div className="flex-1 w-full max-w-3xl mx-auto">
+              <div className="overflow-y-auto max-h-[750px]">
+                <div className="text-center mb-4">
+                  <label className="inline-flex items-center gap-2 text-stone-700 font-medium">
+                    <input
+                      type="checkbox"
+                      checked={isAdultMode}
+                      onChange={() => setIsAdultMode((v) => !v)}
+                      className="w-5 h-5"
+                    />
+                    Ativar modo 18+ 🔥
+                  </label>
+                </div>
 
-            {/* Área das opções - 50% largura no desktop */}
-            <div>
+                <h2 className="text-xl text-stone-700 mb-4 text-center">
+                  Opções disponíveis 💖
+                </h2>
 
-            <div className="flex-1 max-w-xl mx-auto overflow-y-auto max-h-[750px]">
-              <div className="text-center mb-4">
-                <label className="inline-flex items-center gap-2 text-stone-700 font-medium">
-                  <input
-                    type="checkbox"
-                    checked={isAdultMode}
-                    onChange={() => setIsAdultMode((v) => !v)}
-                    className="w-5 h-5"
-                  />
-                  Ativar modo 18+ 🔥
-                </label>
+                {Object.entries(getCards(isAdultMode)).map(([category, items]) => (
+                  <div key={category} className="mb-6">
+                    <h3 className="text-lg font-semibold text-stone-600 mb-2">{category}</h3>
+                    <div className="flex flex-wrap justify-center">
+                      {items.map(({ text, isAdult }, i) => (
+                        <DraggableCard key={category + i} text={text} isAdult={!!isAdult} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {customCards.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-stone-600 mb-2">Personalizados</h3>
+                    <div className="flex flex-wrap justify-center">
+                      {customCards.map((text, i) => (
+                        <DraggableCard key={'custom' + i} text={text} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <h2 className="text-xl text-stone-700 mb-4 text-center">
-                Opções disponíveis 💖
-              </h2>
-
-              {Object.entries(getCards(isAdultMode)).map(([category, items]) => (
-                <div key={category} className="mb-6">
-                  <h3 className="text-lg font-semibold text-stone-600 mb-2">{category}</h3>
-                  <div className="flex flex-wrap justify-center">
-                    {items.map(({ text, isAdult }, i) => (
-                      <DraggableCard key={category + i} text={text} isAdult={!!isAdult} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-
-
-              {customCards.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-stone-600 mb-2">
-                    Personalizados
-                  </h3>
-                  <div className="flex flex-wrap justify-center">
-                    {customCards.map((text, i) => (
-                      <DraggableCard key={'custom' + i} text={text} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
-              <div className='p-4'>
+              <div className="p-4">
                 <h3 className="text-lg text-stone-700 mb-2">Criar opção personalizada:</h3>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={newCardText}
                     onChange={(e) => setNewCardText(e.target.value)}
-                    placeholder="Ex: jogar twister"
+                    placeholder="Ex: jogar Twister"
                     className="px-3 py-2 rounded-lg border border-stone-300 w-full"
-                    />
+                  />
                   <button
                     onClick={addCustomCard}
                     className="bg-amber-200 text-stone-800 px-4 py-2 rounded-lg shadow hover:bg-amber-300"
-                    >
+                  >
                     Adicionar
                   </button>
                 </div>
