@@ -5,21 +5,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { MultiBackend } from 'dnd-multi-backend';
 import { TouchTransition } from 'dnd-multi-backend'; // ✅ apenas os necessários
 
-const HTML5toTouch = {
-  backends: [
-    {
-      backend: HTML5Backend,
-      transition: undefined,
-    },
-    {
-      backend: TouchBackend,
-      options: { enableMouseEvents: true },
-      preview: true,
-      transition: TouchTransition,
-    },
-  ],
-};
-
 
 
 const CARD = 'CARD';
