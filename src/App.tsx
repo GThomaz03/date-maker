@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -181,7 +181,7 @@ export default function App() {
 
   const handleDrop = (index: number, text: string) => {
     setSlots((prevSlots) => {
-      const newSlots = prevSlots.map((slotText, i) =>
+      const newSlots = prevSlots.map((slotText) =>
         slotText === text ? null : slotText
       );
       newSlots[index] = text;
